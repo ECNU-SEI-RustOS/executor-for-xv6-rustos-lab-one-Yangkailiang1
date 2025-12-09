@@ -59,7 +59,7 @@ bitflags! {
 /// 在内核的虚拟内存管理中，页表项用于描述虚拟页到物理页的映射信息，  
 /// 包括物理页地址和权限标志等。该结构体提供对页表项数据的封装和操作接口。
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct PageTableEntry {
     /// 页表项的原始数据，包含物理页帧号和权限标志等信息，  
     /// 具体位域布局遵循目标架构页表格式规范（如 RISC-V Sv39）。  
@@ -446,6 +446,35 @@ impl PageTable {
             .ok()?;
 
         Some(pagetable)
+    }
+
+
+
+    /// Print the page table content recursively.
+    pub fn vm_print(&self, level: usize) {
+        if level == 0 {
+            println!("page table {:p}", self);
+        }
+
+        for i in 0..512 {
+            let pte = &self.data[i];
+            if pte.is_valid() {
+                // Print indentation based on the level
+                for _ in 0..=level {
+                    print!(".. ");
+                }
+                
+                // Print PTE content: index, pte value, physical address
+                println!("{}: pte {:#x} pa {:#x}", i, pte.data, pte.as_phys_addr().as_usize());
+
+                // If it's not a leaf node (i.e., it points to another page table), recurse
+                if !pte.is_leaf() {
+                    let child_pa = pte.as_phys_addr();
+                    let child_pgt = unsafe { &*(child_pa.as_usize() as *const PageTable) };
+                    child_pgt.vm_print(level + 1);
+                }
+            }
+        }
     }
 
     /// # 功能说明
