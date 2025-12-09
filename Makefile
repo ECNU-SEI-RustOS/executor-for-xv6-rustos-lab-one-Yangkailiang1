@@ -3,10 +3,10 @@ USER = user
 INCLUDE = include
 CPUS = 3
 
-CC = riscv64-unknown-elf-gcc
-LD = riscv64-unknown-elf-ld
-OBJCOPY = riscv64-unknown-elf-objcopy
-OBJDUMP = riscv64-unknown-elf-objdump
+CC = riscv64-elf-gcc
+LD = riscv64-elf-ld
+OBJCOPY = riscv64-elf-objcopy
+OBJDUMP = riscv64-elf-objdump
 
 CFLAGS = -Wall -Werror -O -fno-omit-frame-pointer -ggdb
 CFLAGS += -Wno-infinite-recursion
