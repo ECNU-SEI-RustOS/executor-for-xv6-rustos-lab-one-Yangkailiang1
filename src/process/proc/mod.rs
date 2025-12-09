@@ -386,6 +386,11 @@ pub struct Proc {
     pub killed: AtomicBool,
 }
 
+static SYSCALL_NAMES: [&str; 23] = [
+    "", "fork", "exit", "wait", "pipe", "read", "kill", "exec", "fstat", "chdir", "dup", "getpid",
+    "sbrk", "sleep", "uptime", "open", "write", "mknod", "unlink", "link", "mkdir", "close", "trace",
+];
+
 impl Proc {
     pub const fn new(index: usize) -> Self {
         Self {
@@ -532,6 +537,15 @@ impl Proc {
             Ok(ret) => ret,
             Err(()) => -1isize as usize,
         };
+        
+        // trace
+        if (self.data.get_mut().trace_mask & (1 << a7)) != 0 {
+            println!("{}: syscall {} -> {}", 
+                self.excl.lock().pid, 
+                SYSCALL_NAMES[a7], 
+                tf.a0 as isize
+            );
+        }
     }
 
     /// # 功能说明
