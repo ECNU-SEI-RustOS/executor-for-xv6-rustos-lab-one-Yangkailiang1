@@ -90,6 +90,8 @@ pub struct ProcData {
     kstack: usize,
     /// 进程使用的内存大小（字节数）。
     sz: usize,
+    /// 追踪系统调用的掩码。
+    pub trace_mask: i32,
     /// 进程上下文（寄存器状态等），用于上下文切换。
     context: Context,
     /// 进程名称，最长16字节，通常用于调试和显示。
@@ -110,6 +112,7 @@ impl ProcData {
         Self {
             kstack: 0,
             sz: 0,
+            trace_mask: 0,
             context: Context::new(),
             name: [0; 16],
             open_files: array![_ => None; NFILE],
@@ -520,6 +523,7 @@ impl Proc {
             19 => self.sys_link(),
             20 => self.sys_mkdir(),
             21 => self.sys_close(),
+            22 => self.sys_trace(),
             _ => {
                 panic!("unknown syscall num: {}", a7);
             }
@@ -687,6 +691,7 @@ impl Proc {
         // clone opened files and cwd
         cdata.open_files.clone_from(&pdata.open_files);
         cdata.cwd.clone_from(&pdata.cwd);
+        cdata.trace_mask = pdata.trace_mask;
         
         // copy process name
         cdata.name.copy_from_slice(&pdata.name);

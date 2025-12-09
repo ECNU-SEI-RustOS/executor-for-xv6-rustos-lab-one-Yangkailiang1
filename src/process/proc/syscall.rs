@@ -39,6 +39,7 @@ pub trait Syscall {
     fn sys_link(&mut self) -> SysResult;
     fn sys_mkdir(&mut self) -> SysResult;
     fn sys_close(&mut self) -> SysResult;
+    fn sys_trace(&mut self) -> SysResult;
 }
 
 impl Syscall for Proc {
@@ -52,6 +53,13 @@ impl Syscall for Proc {
         println!("[{}].fork() = {:?}(pid)", self.excl.lock().pid, ret);
 
         ret
+    }
+
+    /// Trace system calls.
+    fn sys_trace(&mut self) -> SysResult {
+        let mask = self.arg_i32(0);
+        self.data.get_mut().trace_mask = mask;
+        Ok(0)
     }
 
     /// Exit the current process normally.
